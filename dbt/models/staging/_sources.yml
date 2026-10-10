@@ -1,0 +1,79 @@
+# Raw Olist tables loaded by snowflake/01_load_raw.sql.
+# Syntax is for dbt 1.10+: freshness and loaded_at_field live under config.
+#
+# About freshness: Olist is a one-time Kaggle export, so _loaded_at stops moving
+# after the first load and freshness will start warning after 7 days. That is
+# expected and honest. In a real company the loader would land new files daily.
+# The thresholds below are what you would use for a daily feed.
+
+version: 2
+
+sources:
+  - name: olist
+    description: Brazilian e-commerce orders from Olist (Kaggle), 2016-2018, loaded as-is into RAW.
+    database: OLIST
+    schema: RAW
+    config:
+      loaded_at_field: _loaded_at
+      freshness:
+        warn_after: { count: 7, period: day }
+        error_after: { count: 30, period: day }
+
+    tables:
+      - name: orders
+        description: One row per order, with status and the five lifecycle timestamps.
+        columns:
+          - name: order_id
+            description: Order identifier.
+            data_tests: [unique, not_null]
+
+      - name: order_items
+        description: One row per item within an order. order_item_id is the item's position (1, 2, 3...) in the order.
+        columns:
+          - name: order_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('olist', 'orders')
+                  field: order_id
+
+      - name: order_payments
+        description: One row per payment used on an order. An order can be split across several payment methods.
+        columns:
+          - name: order_id
+            data_tests: [not_null]
+
+      - name: order_reviews
+        description: Customer reviews. review_id is NOT unique in the source; see docs/data_profile.md.
+        columns:
+          - name: review_id
+            data_tests: [not_null]
+
+      - name: customers
+        description: >
+          One row per customer_id. customer_id is created per order;
+          customer_unique_id identifies the actual person across orders.
+        columns:
+          - name: customer_id
+            data_tests: [unique, not_null]
+
+      - name: sellers
+        description: One row per seller.
+        columns:
+          - name: seller_id
+            data_tests: [unique, not_null]
+
+      - name: products
+        description: One row per product. Some column names contain a typo ("lenght") in the source.
+        columns:
+          - name: product_id
+            data_tests: [unique, not_null]
+
+      - name: product_category_name_translation
+        description: Portuguese to English product category names.
+        columns:
+          - name: product_category_name
+            data_tests: [unique, not_null]
+
+      - name: geolocation
+        description: Zip code prefix to latitude/longitude. Many rows per prefix, including exact duplicates.

@@ -1,0 +1,77 @@
+# Week 1: key tests only. Week 3 adds relationships, custom tests and full docs.
+version: 2
+
+models:
+  - name: stg_orders
+    description: One row per order. Timestamps cast; status lower-cased.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: customer_id
+        data_tests: [not_null]
+      - name: order_status
+        data_tests:
+          - accepted_values:
+              values: [delivered, shipped, canceled, unavailable, invoiced, processing, created, approved]
+      - name: purchased_at
+        data_tests: [not_null]
+
+  - name: stg_order_items
+    description: One row per item in an order.
+    columns:
+      - name: order_item_key
+        data_tests: [unique, not_null]
+      - name: order_id
+        data_tests: [not_null]
+      - name: price
+        data_tests: [not_null]
+
+  - name: stg_payments
+    description: One row per payment on an order.
+    columns:
+      - name: payment_key
+        data_tests: [unique, not_null]
+      - name: payment_type
+        data_tests:
+          - accepted_values:
+              values: [credit_card, boleto, voucher, debit_card, not_defined]
+
+  - name: stg_reviews
+    description: One row per (review_id, order_id), deduplicated.
+    columns:
+      - name: review_key
+        data_tests: [unique, not_null]
+      - name: review_score
+        data_tests:
+          - accepted_values:
+              values: [1, 2, 3, 4, 5]
+              quote: false
+
+  - name: stg_customers
+    description: One row per customer_id (per order). Use customer_unique_id for people.
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+      - name: customer_unique_id
+        data_tests: [not_null]
+
+  - name: stg_sellers
+    columns:
+      - name: seller_id
+        data_tests: [unique, not_null]
+
+  - name: stg_products
+    columns:
+      - name: product_id
+        data_tests: [unique, not_null]
+
+  - name: stg_category_translation
+    columns:
+      - name: category_name_pt
+        data_tests: [unique, not_null]
+
+  - name: stg_geolocation
+    description: One row per zip code prefix, deduplicated and cleaned.
+    columns:
+      - name: zip_code_prefix
+        data_tests: [unique, not_null]

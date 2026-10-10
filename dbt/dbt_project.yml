@@ -1,0 +1,40 @@
+name: olist
+version: "1.0.0"
+profile: olist
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - target
+  - dbt_packages
+
+# Schemas: in prod these land exactly in STAGING / INTERMEDIATE / MARTS.
+# In dev and CI they get a prefix (e.g. DBT_DEV_STAGING, CI_PR_12_MARTS);
+# see macros/generate_schema_name.sql.
+models:
+  olist:
+    +persist_docs:
+      relation: true
+      columns: true
+    staging:
+      +schema: staging
+      +materialized: view
+      +tags: ["staging"]
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+      +tags: ["intermediate"]
+    marts:
+      +schema: marts
+      +materialized: table
+      +tags: ["marts"]
+
+snapshots:
+  olist:
+    +schema: snapshots
+    +tags: ["snapshots"]
