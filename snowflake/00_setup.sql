@@ -57,10 +57,7 @@ USE ROLE SECURITYADMIN;
 GRANT ROLE TRANSFORMER TO ROLE SYSADMIN;
 GRANT ROLE REPORTER    TO ROLE SYSADMIN;
 
--- Give yourself both roles so you can test them in Snowsight.
-SET my_user = CURRENT_USER();
-GRANT ROLE TRANSFORMER TO USER IDENTIFIER($my_user);
-GRANT ROLE REPORTER    TO USER IDENTIFIER($my_user);
+
 
 -- Warehouse
 GRANT USAGE, OPERATE ON WAREHOUSE OLIST_WH TO ROLE TRANSFORMER;
@@ -93,7 +90,7 @@ GRANT SELECT ON FUTURE VIEWS  IN SCHEMA OLIST.MARTS TO ROLE REPORTER;
 -- TYPE = SERVICE user with an RSA key pair. Generate the key on your laptop
 -- first (see README > "Create the service user key"), then paste the PUBLIC key
 -- below, without the BEGIN/END lines and without line breaks.
-USE ROLE USERADMIN;
+USE ROLE ACCOUNTADMIN;
 
 CREATE USER IF NOT EXISTS DBT_SVC
     TYPE              = SERVICE
@@ -102,11 +99,8 @@ CREATE USER IF NOT EXISTS DBT_SVC
     DEFAULT_NAMESPACE = OLIST.RAW
     COMMENT = 'Service user for dbt, Airflow and CI';
 
--- ALTER USER DBT_SVC SET RSA_PUBLIC_KEY = 'MIIBIjANBgkqh...paste your public key here...';
-
-USE ROLE SECURITYADMIN;
+--ALTER USER DBT_SVC SET RSA_PUBLIC_KEY = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvALCnHFKLv7ir+dWgP59EMQn5sS3bE/XaiY4bqw8SlbgDYwx1Ufw5aD02ctGyURFDySjoPAh16pbUrciysF+b1qVoqiGwCxmUBJmAmabCCxT/RQLG6uz12qA7OSywKZABPwc1AnoDbPww4c47+ZpSmBTT4yRtDhgExs/9LCn63kdyOz/ETRTD9O1FhdT9zQf9uiN/UPrVqCBCj7HVJavLA2f8t71vA3yMg84rz3nfmFW75ov6tGWmW7MBa3sJWV8jOsrLxbB4ha4VxsNzyRTFTjBsc9TsSwH/byvGTWJSBKmXjp1qRQ+OBBUYF75975hDXYekPqt8SZLimA6RwBtOwIDAQAB';
 GRANT ROLE TRANSFORMER TO USER DBT_SVC;
-
 
 -- -----------------------------------------------------------------------------
 -- 5. Resource monitor: stop the warehouse before the trial credits run out
