@@ -116,6 +116,9 @@ def main() -> int:
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    # The Snowflake connector logs every HTTP call at INFO; keep only its warnings.
+    logging.getLogger("snowflake").setLevel(logging.WARNING)
+    logging.getLogger("botocore").setLevel(logging.WARNING)
     load_dotenv(REPO_ROOT / ".env")
 
     conn = connect()

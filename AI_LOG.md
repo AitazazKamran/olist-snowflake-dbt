@@ -16,6 +16,7 @@ This log records what the AI did well, what it got wrong, and how I caught it.
 | Date | Task | Tool | What AI did well | What it got wrong | How I caught it |
 |---|---|---|---|---|---|
 | 2026-10-10 | Week 1 scaffold: setup SQL, COPY INTO, staging models | Claude | Generated the full Week 1 scaffold, roles and grants, profiling queries | _fill in after you run it_ | _fill in_ |
+| 2026-11-06 | Raw load re-run | Claude | Loader re-run gave SKIPPED / 0 files processed; verified idempotency with unchanged row counts | | |
 
 <!--
 Add a row every time something notable happens. Aim for at least 5 real entries.
