@@ -10,7 +10,7 @@ Usage:
     python ingestion/load_raw.py                 # uses ./data
     python ingestion/load_raw.py --data-dir D:/olist
 
-Connection settings come from environment variables (see .env.example).
+Connection settings come from environment variables or .env (see README.md).
 """
 
 from __future__ import annotations

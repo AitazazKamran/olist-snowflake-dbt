@@ -65,7 +65,19 @@ AI_LOG.md        how AI was used and checked
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env               # then fill it in
+```
+
+Create a `.env` file in the repo root (it is git-ignored) with these settings:
+
+```bash
+SNOWFLAKE_ACCOUNT=your_org-your_account     # <orgname>-<accountname>
+SNOWFLAKE_USER=DBT_SVC
+SNOWFLAKE_ROLE=TRANSFORMER
+SNOWFLAKE_WAREHOUSE=OLIST_WH
+SNOWFLAKE_DATABASE=OLIST
+SNOWFLAKE_PRIVATE_KEY_PATH=/absolute/path/outside/repo/rsa_key.p8
+SNOWFLAKE_PRIVATE_KEY_PASSPHRASE=           # empty if the key has no passphrase
+DBT_TARGET=dev                              # dev, prod or ci
 ```
 
 ### 2. Create the service user key

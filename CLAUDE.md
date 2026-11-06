@@ -8,7 +8,7 @@ Olist Brazilian e-commerce data (9 Kaggle CSVs, ~100K orders) → Snowflake RAW 
 
 ## Commands
 
-Setup (Python 3.10–3.12): `pip install -r requirements.txt`, then copy `.env.example` to `.env`.
+Setup (Python 3.10–3.12): `pip install -r requirements.txt`, then create `.env` with the settings listed in `README.md` (How to run, step 1).
 
 ```bash
 python ingestion/load_raw.py                  # PUT CSVs from ./data + run snowflake/01_load_raw.sql; idempotent
