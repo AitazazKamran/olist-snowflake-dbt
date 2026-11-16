@@ -1,0 +1,20 @@
+# SCD Type 2 history of product attributes.
+# Each run compares the current stg_products row with the latest snapshot row.
+# If a checked column changed, the old row gets dbt_valid_to = now and a new row
+# is inserted with dbt_valid_from = now. The current version has dbt_valid_to = null.
+# Source has no updated_at column, so we use the 'check' strategy.
+snapshots:
+  - name: snap_products
+    relation: ref('stg_products')
+    config:
+      unique_key: product_id
+      strategy: check
+      check_cols:
+        - category_name_pt
+        - product_name_length
+        - product_description_length
+        - photo_count
+        - weight_g
+        - length_cm
+        - height_cm
+        - width_cm

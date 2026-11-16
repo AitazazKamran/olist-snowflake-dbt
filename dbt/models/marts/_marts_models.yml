@@ -1,0 +1,175 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: >
+      One row per order (all orders, including canceled and unavailable ones).
+      Power BI's main fact table. Revenue = sum of item price for orders not
+      canceled or unavailable; freight and payments are separate measures.
+      Average order value = sum(revenue) / count of orders where is_revenue_order
+      and has_items.
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: ref('stg_orders')
+    columns:
+      - name: order_id
+        description: Order identifier. Primary key.
+        data_tests: [unique, not_null]
+      - name: customer_unique_id
+        description: The person who placed the order. Joins to dim_customers.
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_unique_id
+      - name: customer_id
+        description: Olist's per-order customer id. Do not use for customer counts.
+      - name: order_date
+        description: Purchase date. Joins to dim_date.
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_day
+      - name: order_status
+        description: delivered, shipped, canceled, unavailable, invoiced, processing, created or approved.
+        data_tests:
+          - accepted_values:
+              values: [delivered, shipped, canceled, unavailable, invoiced, processing, created, approved]
+      - name: is_revenue_order
+        description: True unless the order is canceled or unavailable.
+      - name: has_items
+        description: False for the 775 orders that have no item rows (mostly unavailable or canceled).
+      - name: customer_order_number
+        description: 1 for the person's first order, 2 for the second, and so on.
+      - name: is_first_order
+        description: True when this is the person's first order.
+      - name: item_count
+        description: Number of items in the order (0 if none).
+      - name: seller_count
+        description: Number of distinct sellers in the order.
+      - name: items_value
+        description: Sum of item prices, whatever the status.
+      - name: freight_value
+        description: Sum of freight charged on the order's items.
+      - name: revenue
+        description: Sum of item price for orders not canceled or unavailable; 0 otherwise.
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: payment_total
+        description: Total paid across all payment methods. Can exceed items + freight (instalment interest).
+      - name: primary_payment_type
+        description: The payment method that paid the largest share of the order.
+      - name: is_split_payment
+        description: True when more than one payment method was used.
+      - name: delivery_days
+        description: Days from purchase to delivery to the customer.
+      - name: days_to_carrier
+        description: Days from purchase to hand-over to the carrier. Null when the source date is before purchase (166 orders).
+      - name: is_late
+        description: >
+          True when the delivered date is after the estimated delivery date.
+          Null unless the order is delivered and both dates exist.
+      - name: days_late
+        description: Days after the estimated date that a late order arrived.
+      - name: review_score
+        description: Score 1 to 5 of the latest review. Null for the 768 orders without a review.
+        data_tests:
+          - accepted_values:
+              values: [1, 2, 3, 4, 5]
+              quote: false
+      - name: review_count
+        description: Number of reviews the order received (latest one is kept).
+
+  - name: fct_order_items
+    description: >
+      One row per item in an order. Incremental model (merge on order_item_key,
+      3-day lookback). is_late, delivery_days and review_score are order-level
+      values repeated on each item: count distinct orders when averaging them per seller.
+    columns:
+      - name: order_item_key
+        description: Surrogate key of order_id + item number. Primary key.
+        data_tests: [unique, not_null]
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('fct_orders')
+              field: order_id
+      - name: product_id
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_products')
+              field: product_id
+      - name: seller_id
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_sellers')
+              field: seller_id
+      - name: revenue
+        description: Item price if the order is a revenue order; 0 otherwise.
+
+  - name: dim_customers
+    description: One row per person (customer_unique_id).
+    columns:
+      - name: customer_unique_id
+        description: The person. Primary key.
+        data_tests: [unique, not_null]
+      - name: zip_code_prefix
+        description: Zip of the person's most recent order.
+        data_tests:
+          - relationships:
+              to: ref('dim_geography')
+              field: zip_code_prefix
+      - name: cohort_month
+        description: Month of the person's first order (any status).
+      - name: delivered_orders
+        description: Number of the person's orders with status delivered.
+      - name: is_repeat_customer
+        description: True when the person has 2 or more delivered orders.
+
+  - name: dim_sellers
+    description: One row per seller.
+    columns:
+      - name: seller_id
+        description: Primary key.
+        data_tests: [unique, not_null]
+      - name: zip_code_prefix
+        data_tests:
+          - relationships:
+              to: ref('dim_geography')
+              field: zip_code_prefix
+
+  - name: dim_products
+    description: One row per product, with English category names.
+    columns:
+      - name: product_id
+        description: Primary key.
+        data_tests: [unique, not_null]
+      - name: category_name
+        description: >
+          English category. Falls back to the seed fixes, then the Portuguese
+          name, then 'unknown' (610 products have no category).
+        data_tests: [not_null]
+
+  - name: dim_geography
+    description: >
+      One row per zip code prefix used by any customer or seller, plus every
+      zip in the geolocation file. Coordinates are averaged; null when the zip
+      has no geolocation match.
+    columns:
+      - name: zip_code_prefix
+        description: Primary key (5 characters, leading zeros kept).
+        data_tests: [unique, not_null]
+      - name: has_coordinates
+        description: False when no geolocation data exists for the zip.
+
+  - name: dim_date
+    description: One row per day from 2016-01-01 to 2018-12-31.
+    columns:
+      - name: date_day
+        description: Primary key.
+        data_tests: [unique, not_null]

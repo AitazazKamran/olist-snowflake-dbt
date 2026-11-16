@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: int_order_items_summary
+    description: One row per order that has items. Item count, item value and freight rolled up from order_items.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+
+  - name: int_order_reviews
+    description: One row per order that has a review. Keeps the most recently answered review when an order has several.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: review_count
+        description: How many review rows the order had before keeping the latest (1 to 3).
+
+  - name: int_order_payments_pivoted
+    description: One row per order that has a payment. Total paid, split flag, and amount per payment type.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+
+  - name: int_order_delivery_metrics
+    description: One row per order. Delivery durations in days and the late-delivery flag.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: is_late
+        description: >
+          True when the delivered date is after the estimated delivery date.
+          Null (unknown) unless the order is delivered and both dates exist.
+
+  - name: int_customer_orders
+    description: One row per order with the person (customer_unique_id) and their order sequence.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: customer_unique_id
+        data_tests: [not_null]

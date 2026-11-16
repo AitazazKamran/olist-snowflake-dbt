@@ -38,3 +38,13 @@ snapshots:
   olist:
     +schema: snapshots
     +tags: ["snapshots"]
+
+# Small hand-maintained lookup tables (CSV files in seeds/), loaded with `dbt seed`.
+seeds:
+  olist:
+    +schema: staging
+    +tags: ["seeds"]
+    category_translation_fixes:
+      +column_types:
+        category_name_pt: varchar
+        category_name_en: varchar

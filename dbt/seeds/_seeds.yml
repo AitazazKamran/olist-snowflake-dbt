@@ -1,0 +1,10 @@
+version: 2
+
+seeds:
+  - name: category_translation_fixes
+    description: >
+      English names for the 2 product categories missing from the official
+      translation table (found while profiling; 13 products).
+    columns:
+      - name: category_name_pt
+        data_tests: [unique, not_null]
