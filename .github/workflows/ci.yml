@@ -1,0 +1,71 @@
+# Runs on every pull request to main:
+#   1. lint      SQLFluff checks SQL style in dbt/models
+#   2. dbt-build builds and tests the whole project in a throwaway schema
+#                (CI_PR_<number>_STAGING, ..._MARTS), then drops it
+# Make these checks "required" in branch protection so a failing PR cannot merge.
+#
+# Repository secrets needed (Settings > Secrets and variables > Actions):
+#   SNOWFLAKE_ACCOUNT      e.g. ZJXGCLM-VN44175
+#   SNOWFLAKE_PRIVATE_KEY  full contents of rsa_key.p8, including BEGIN/END lines
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "sqlfluff>=3.0,<4.0"
+      - name: Lint dbt models
+        run: sqlfluff lint dbt/models
+
+  dbt-build:
+    runs-on: ubuntu-latest
+    needs: lint
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: DBT_SVC
+      SNOWFLAKE_PRIVATE_KEY_PATH: ${{ github.workspace }}/.ci_key/rsa_key.p8
+      DBT_PROFILES_DIR: ${{ github.workspace }}/dbt
+      DBT_TARGET: ci
+      DBT_CI_SCHEMA: CI_PR_${{ github.event.pull_request.number || github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: Write Snowflake key from secret
+        env:
+          KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+        run: |
+          mkdir -p .ci_key
+          printf '%s\n' "$KEY" > .ci_key/rsa_key.p8
+          chmod 600 .ci_key/rsa_key.p8
+
+      - name: dbt deps
+        working-directory: dbt
+        run: dbt deps
+
+      - name: dbt build
+        working-directory: dbt
+        run: dbt build
+
+      - name: Drop CI schemas
+        if: always()
+        working-directory: dbt
+        run: dbt run-operation drop_ci_schemas

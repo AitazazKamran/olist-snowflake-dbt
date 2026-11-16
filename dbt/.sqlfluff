@@ -1,0 +1,29 @@
+[sqlfluff]
+dialect = snowflake
+templater = jinja
+max_line_length = 120
+# Style rules we do not enforce: aliases are explicit enough in this project
+exclude_rules = AL01, AL07, AM04, ST06, ST07, RF04
+
+[sqlfluff:templater:jinja]
+apply_dbt_builtins = True
+library_path = .sqlfluff_macros
+
+[sqlfluff:indentation]
+tab_space_size = 4
+implicit_indents = allow
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.literals]
+capitalisation_policy = lower
+
+# Allow column aliases to be lined up in a column (our house style)
+[sqlfluff:layout:type:alias_expression]
+spacing_before = align
+align_within = select_clause
+align_scope = bracketed

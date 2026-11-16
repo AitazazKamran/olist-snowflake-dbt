@@ -28,10 +28,10 @@ select
     row_number() over (
         partition by c.customer_unique_id
         order by o.purchased_at, o.order_id
-    )                                                        as customer_order_number,
+    ) as customer_order_number,
 
     min(o.purchased_at) over (partition by c.customer_unique_id)
-                                                             as customer_first_purchased_at
+        as customer_first_purchased_at
 
 from orders o
 left join customers c

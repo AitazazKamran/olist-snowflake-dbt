@@ -19,9 +19,9 @@ select
     max(installments)                                    as max_installments,
     -- the method that paid the largest share of the order
     max_by(payment_type, payment_value)                  as primary_payment_type,
-    {% for t in payment_types %}
+{% for t in payment_types %}
     sum(iff(payment_type = '{{ t }}', payment_value, 0)) as {{ t }}_amount{{ "," if not loop.last }}
-    {% endfor %}
+{% endfor %}
 
 from payments
 group by order_id

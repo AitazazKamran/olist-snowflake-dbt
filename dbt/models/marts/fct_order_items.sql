@@ -39,7 +39,7 @@ select
     o.is_revenue_order,
     i.price,
     i.freight_value,
-    iff(o.is_revenue_order, i.price, 0)       as revenue,
+    iff(o.is_revenue_order, i.price, 0) as revenue,
     i.shipping_limit_at,
     o.is_late,
     o.delivery_days,
@@ -50,7 +50,8 @@ inner join orders o
     on i.order_id = o.order_id
 
 {% if is_incremental() %}
-where o.purchased_at >= (
-    select dateadd('day', -3, max(purchased_at)) from {{ this }}
-)
+    where o.purchased_at >= (
+            select dateadd('day', -3, max(existing.purchased_at))
+            from {{ this }} as existing
+        )
 {% endif %}

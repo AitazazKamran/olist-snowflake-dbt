@@ -7,8 +7,8 @@ with source as (
 renamed as (
 
     select
-        lower(trim(product_category_name))               as category_name_pt,
-        lower(trim(product_category_name_english))       as category_name_en,
+        lower(trim(product_category_name))         as category_name_pt,
+        lower(trim(product_category_name_english)) as category_name_en,
         _loaded_at
 
     from source

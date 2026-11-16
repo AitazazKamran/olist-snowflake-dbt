@@ -1,0 +1,57 @@
+# Local Airflow for the Olist pipeline.
+#
+#   docker compose up -d --build     start (first build takes a few minutes)
+#   http://localhost:8080            Airflow UI (no login needed locally)
+#   docker compose down              stop
+#
+# Uses `airflow standalone` (scheduler + API server + DAG processor + triggerer
+# in one container) with a Postgres metadata database. Fine for a single
+# developer machine; production would run each component separately.
+#
+# Reads the repo's .env for Snowflake settings. Add this line to .env:
+#   SNOWFLAKE_KEY_DIR=C:/Users/hp/.snowflake
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+
+  airflow:
+    build: ./airflow
+    # Windows bind mounts show up as world-writable, and the Snowflake connector
+    # refuses such key files, so copy the key in with owner-only permissions.
+    command: ["bash", "-c", "install -D -m 600 /opt/keys/rsa_key.p8 /home/airflow/.snowflake/rsa_key.p8 && exec airflow standalone"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: "True"   # local only: skip login
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "True"
+      # Paths inside the container
+      PROJECT_DIR: /opt/project
+      DBT_VENV: /home/airflow/dbt_venv
+      DBT_PROFILES_DIR: /opt/project/dbt
+      SNOWFLAKE_PRIVATE_KEY_PATH: /home/airflow/.snowflake/rsa_key.p8
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - .:/opt/project
+      - ${SNOWFLAKE_KEY_DIR}:/opt/keys:ro
+
+volumes:
+  airflow-db:

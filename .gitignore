@@ -31,3 +31,6 @@ airflow/plugins/__pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+
+# CI key written by GitHub Actions
+.ci_key/

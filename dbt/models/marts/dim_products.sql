@@ -17,9 +17,11 @@ fixes as (
 
 select
     p.product_id,
-    coalesce(p.category_name_pt, 'unknown')                 as category_name_pt,
-    coalesce(t.category_name_en, f.category_name_en,
-             p.category_name_pt, 'unknown')                 as category_name,
+    coalesce(p.category_name_pt, 'unknown') as category_name_pt,
+    coalesce(
+        t.category_name_en, f.category_name_en,
+        p.category_name_pt, 'unknown'
+    )                                       as category_name,
     p.product_name_length,
     p.product_description_length,
     p.photo_count,
@@ -27,8 +29,8 @@ select
     p.length_cm,
     p.height_cm,
     p.width_cm,
-    p.length_cm * p.height_cm * p.width_cm                  as volume_cm3
+    p.length_cm * p.height_cm * p.width_cm  as volume_cm3
 
 from products p
 left join translations t on p.category_name_pt = t.category_name_pt
-left join fixes        f on p.category_name_pt = f.category_name_pt
+left join fixes f on p.category_name_pt = f.category_name_pt

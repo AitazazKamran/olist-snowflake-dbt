@@ -37,14 +37,14 @@ joined as (
         o.order_id,
         co.customer_unique_id,
         o.customer_id,
-        o.purchased_at::date                                    as order_date,
+        o.purchased_at::date                              as order_date,
 
         -- status
         o.order_status,
-        o.order_status not in ('canceled', 'unavailable')      as is_revenue_order,
-        coalesce(i.item_count, 0) > 0                           as has_items,
+        o.order_status not in ('canceled', 'unavailable') as is_revenue_order,
+        coalesce(i.item_count, 0) > 0                     as has_items,
         co.customer_order_number,
-        co.customer_order_number = 1                            as is_first_order,
+        co.customer_order_number = 1                      as is_first_order,
 
         -- lifecycle timestamps
         o.purchased_at,
@@ -54,18 +54,20 @@ joined as (
         o.estimated_delivery_at,
 
         -- items
-        coalesce(i.item_count, 0)                               as item_count,
-        coalesce(i.distinct_seller_count, 0)                    as seller_count,
-        coalesce(i.items_value, 0)                              as items_value,
-        coalesce(i.freight_value, 0)                            as freight_value,
-        iff(o.order_status not in ('canceled', 'unavailable'),
-            coalesce(i.items_value, 0), 0)                      as revenue,
+        coalesce(i.item_count, 0)                         as item_count,
+        coalesce(i.distinct_seller_count, 0)              as seller_count,
+        coalesce(i.items_value, 0)                        as items_value,
+        coalesce(i.freight_value, 0)                      as freight_value,
+        iff(
+            o.order_status not in ('canceled', 'unavailable'),
+            coalesce(i.items_value, 0), 0
+        )                                                 as revenue,
 
         -- payments
         p.payment_total,
         p.payment_count,
         p.primary_payment_type,
-        coalesce(p.is_split_payment, false)                     as is_split_payment,
+        coalesce(p.is_split_payment, false)               as is_split_payment,
         p.max_installments,
         p.credit_card_amount,
         p.boleto_amount,
@@ -82,14 +84,14 @@ joined as (
         -- review
         r.review_score,
         r.review_count,
-        r.has_comment                                           as review_has_comment
+        r.has_comment                                     as review_has_comment
 
     from orders o
     left join customer_orders co on o.order_id = co.order_id
-    left join items           i  on o.order_id = i.order_id
-    left join payments        p  on o.order_id = p.order_id
-    left join reviews         r  on o.order_id = r.order_id
-    left join delivery        d  on o.order_id = d.order_id
+    left join items i on o.order_id = i.order_id
+    left join payments p on o.order_id = p.order_id
+    left join reviews r on o.order_id = r.order_id
+    left join delivery d on o.order_id = d.order_id
 
 )
 

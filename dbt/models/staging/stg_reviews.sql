@@ -16,11 +16,11 @@ renamed as (
         {{ dbt_utils.generate_surrogate_key(['review_id', 'order_id']) }} as review_key,
         review_id,
         order_id,
-        try_to_number(review_score)                      as review_score,
-        nullif(trim(review_comment_title), '')           as comment_title,
-        nullif(trim(review_comment_message), '')         as comment_message,
-        try_to_timestamp_ntz(review_creation_date)       as review_created_at,
-        try_to_timestamp_ntz(review_answer_timestamp)    as review_answered_at,
+        try_to_number(review_score)                                       as review_score,
+        nullif(trim(review_comment_title), '')                            as comment_title,
+        nullif(trim(review_comment_message), '')                          as comment_message,
+        try_to_timestamp_ntz(review_creation_date)                        as review_created_at,
+        try_to_timestamp_ntz(review_answer_timestamp)                     as review_answered_at,
         _loaded_at
 
     from source
@@ -32,9 +32,9 @@ deduplicated as (
     select *
     from renamed
     qualify row_number() over (
-        partition by review_id, order_id
-        order by review_answered_at desc nulls last
-    ) = 1
+            partition by review_id, order_id
+            order by review_answered_at desc nulls last
+        ) = 1
 
 )
 
