@@ -12,7 +12,8 @@ models:
       - name: order_status
         data_tests:
           - accepted_values:
-              values: [delivered, shipped, canceled, unavailable, invoiced, processing, created, approved]
+              arguments:
+                values: [delivered, shipped, canceled, unavailable, invoiced, processing, created, approved]
       - name: purchased_at
         data_tests: [not_null]
 
@@ -34,7 +35,8 @@ models:
       - name: payment_type
         data_tests:
           - accepted_values:
-              values: [credit_card, boleto, voucher, debit_card, not_defined]
+              arguments:
+                values: [credit_card, boleto, voucher, debit_card, not_defined]
 
   - name: stg_reviews
     description: One row per (review_id, order_id), deduplicated.
@@ -44,8 +46,9 @@ models:
       - name: review_score
         data_tests:
           - accepted_values:
-              values: [1, 2, 3, 4, 5]
-              quote: false
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false
 
   - name: stg_customers
     description: One row per customer_id (per order). Use customer_unique_id for people.
