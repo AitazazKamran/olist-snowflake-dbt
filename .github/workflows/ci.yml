@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install "sqlfluff>=3.0,<4.0"
+      - run: pip install "sqlfluff==4.5.0"   # same pin as requirements.txt
       - name: Lint dbt models
         run: sqlfluff lint dbt/models
 
