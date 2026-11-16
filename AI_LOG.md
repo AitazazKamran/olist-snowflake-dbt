@@ -17,6 +17,8 @@ This log records what the AI did well, what it got wrong, and how I caught it.
 |---|---|---|---|---|---|
 | 2026-10-10 | Week 1 scaffold: setup SQL, COPY INTO, staging models | Claude | Generated the full Week 1 scaffold, roles and grants, profiling queries | _fill in after you run it_ | _fill in_ |
 | 2026-11-06 | Raw load re-run | Claude | Loader re-run gave SKIPPED / 0 files processed; verified idempotency with unchanged row counts | | |
+| 2026-11-16 | Airflow `load_raw` task failure and retry | Claude | Read the task log, found the cause and fixed it in `docker-compose.yml`: the container copies the key in with `chmod 600` at startup. Verified by running the loader inside the container (row counts unchanged), then cleared the task to rerun | The Docker setup mounted the Windows key folder directly; the Snowflake connector rejects keys that are writable by group or others ("Insecure file permissions"), and Windows mounts always look world-writable | `load_raw` failed in the Airflow UI on the first scheduled run; the error was in the task log |
+| 2026-11-16 | SQLFluff formatting for CI | Claude | Auto-formatted the 21 models with `sqlfluff fix` so they passed `sqlfluff lint` locally | Pinned SQLFluff `>=3.0` in `requirements.txt` (installed 4.5.0) but `<4.0` in CI (installed 3.5.0); the two versions format differently, so CI flagged 8 of the files that passed locally | The `lint` check failed on the PR; reproduced it by installing 3.5.0 in a scratch venv, then pinned `sqlfluff==4.5.0` in both places |
 
 <!--
 Add a row every time something notable happens. Aim for at least 5 real entries.
