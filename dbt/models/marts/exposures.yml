@@ -1,0 +1,22 @@
+version: 2
+
+exposures:
+  - name: olist_power_bi_dashboard
+    label: Olist Sales & Operations Dashboard
+    type: dashboard
+    maturity: medium
+    url: https://github.com/AitazazKamran/olist-snowflake-dbt/tree/main/dashboard
+    description: >
+      4-page Power BI report (Sales overview, Delivery and reviews, Seller
+      performance, Customer cohorts) plus a data quality page. Connects to
+      OLIST.MARTS with the read-only REPORTER role.
+    depends_on:
+      - ref('fct_orders')
+      - ref('fct_order_items')
+      - ref('dim_customers')
+      - ref('dim_products')
+      - ref('dim_sellers')
+      - ref('dim_geography')
+      - ref('dim_date')
+    owner:
+      name: Aitazaz Kamran

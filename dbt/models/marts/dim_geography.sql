@@ -11,9 +11,17 @@ with geo as (
 
 used_zips as (
 
-    select zip_code_prefix, city, state from {{ ref('stg_customers') }}
+    select
+        zip_code_prefix,
+        city,
+        state
+    from {{ ref('stg_customers') }}
     union all
-    select zip_code_prefix, city, state from {{ ref('stg_sellers') }}
+    select
+        zip_code_prefix,
+        city,
+        state
+    from {{ ref('stg_sellers') }}
 
 ),
 
@@ -31,19 +39,19 @@ used_zip_names as (
 all_zips as (
 
     select zip_code_prefix from geo
-    union
+    union distinct
     select zip_code_prefix from used_zip_names
 
 )
 
 select
     z.zip_code_prefix,
-    coalesce(g.city, u.city)          as city,
-    coalesce(g.state, u.state)        as state,
+    coalesce(g.city, u.city)   as city,
+    coalesce(g.state, u.state) as state,
     g.latitude,
     g.longitude,
-    g.latitude is not null            as has_coordinates
+    g.latitude is not null     as has_coordinates
 
 from all_zips z
-left join geo            g on z.zip_code_prefix = g.zip_code_prefix
+left join geo g on z.zip_code_prefix = g.zip_code_prefix
 left join used_zip_names u on z.zip_code_prefix = u.zip_code_prefix

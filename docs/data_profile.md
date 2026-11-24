@@ -60,7 +60,7 @@ the load is **idempotent** (safe to rerun, no duplicate rows).
 | 16 | Zero-value payments | 9 (including 3 `not_defined` payments totalling R$0) | Harmless, but skews "average payment" slightly | Kept; documented | `accepted_values` on `payment_type` includes `not_defined` |
 | 17 | Products with no category | 610 (1.9%) | Blank category in the dashboard | `dim_products` labels them `unknown` (Week 2) | — |
 | 18 | Categories with no English translation | 2 categories, 13 products: `pc_gamer`, `portateis_cozinha_e_preparadores_de_alimentos` | Untranslated category names in the dashboard | dbt seed `category_translation_fixes.csv` fills them in (Week 2) | — |
-| 19 | Customer zip prefixes with no geolocation match | 157 distinct prefixes | Some customers get no coordinates on the map | `dim_geography` LEFT JOIN; missing coordinates stay null | — |
+| 19 | Zip prefixes with no usable coordinates | 157 customer prefixes missing from the geolocation file (profiling). Final count in `dim_geography`: **163** = 162 customer/seller prefixes absent from the file + 1 prefix whose only coordinates were outside Brazil | Some customers and sellers get no position on the map | `dim_geography` includes every used zip; coordinates stay null and `has_coordinates = false` | `relationships` tests from `dim_customers` and `dim_sellers` to `dim_geography` |
 | 20 | Typo in source column names (`lenght`) | 2 columns | Readability | `stg_products` renames to `length` | — |
 
 ## Checks that came back clean
